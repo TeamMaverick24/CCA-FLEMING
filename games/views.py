@@ -13,7 +13,7 @@ from .serializer import *
 
 class GamesTypeViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows Games level type for example : Game Level 1, Game Level 2, Game Level 3.
     """
     permission_classes = [IsAuthenticated]
     queryset = GamesType.objects.all()
@@ -23,7 +23,7 @@ class GamesTypeViewSet(viewsets.ModelViewSet):
 
 class GamesOptionsViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    An API endpoint that allows Games Options to answer with one of the options.
     """
     permission_classes = [IsAuthenticated]
     queryset = GamesOptions.objects.all()
@@ -33,7 +33,10 @@ class GamesOptionsViewSet(viewsets.ModelViewSet):
 
 class GamesViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+        API endpoint that allows to \n
+        Create new Game from admin side \n. 
+        Update Existing Game from admin side \n. 
+        List games and their statuses on the user interface, showing locked and unlocked games \n.
     """
     permission_classes = [IsAuthenticated]
     queryset = Games.objects.all()
@@ -58,7 +61,6 @@ class GetUserGameList(APIView):
                 })
                 last_level = game_ob.game.level
             
-            print(last_level)
             game_objs = Games.objects.filter(level__gt=last_level,game_type__id=game_type).all()
             for game_obj in game_objs:
                 game_list.append({
