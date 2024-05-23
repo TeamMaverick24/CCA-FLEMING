@@ -23,7 +23,7 @@ class GamesTypeViewSet(viewsets.ModelViewSet):
 
 class GamesOptionsViewSet(viewsets.ModelViewSet):
     """
-    An API endpoint that allows Games Options to answer with one of the options.
+    An API endpoint that allows Games Options to answer with one of the options. 
     """
     permission_classes = [IsAuthenticated]
     queryset = GamesOptions.objects.all()
@@ -44,7 +44,10 @@ class GamesViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put']
 
 class GetUserGameList(APIView):
-    # authentication_classes = (TokenAuthentication,)
+    """
+        API endpoint that shows all games in 
+
+    """
     permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         try:

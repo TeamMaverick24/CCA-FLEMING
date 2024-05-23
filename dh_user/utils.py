@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytz
 
-TIMEZONE_CONTINENT = "Asia"
+TIMEZONE_CONTINENT = "America"
 
-DEFAULT_TIMEZONE = "Asia/Kolkata"
+DEFAULT_TIMEZONE = "America/Toronto"
 
-SYSTEM_TIMEZONE = "Asia/Kolkata"
+SYSTEM_TIMEZONE = "America/Toronto"
 
 
 def get_timezones():
@@ -19,7 +19,7 @@ def normalize_to_utc(time, timezone):
     """
     Convert naive time into given timezone, then UTC
     """
-    utct = pytz.timezone(u'UTC')
+    utct = pytz.timezone(u'EST')
     tzt = pytz.timezone(timezone)
 
     return tzt.localize(time).astimezone(utct)

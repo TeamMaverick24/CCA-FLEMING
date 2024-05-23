@@ -45,7 +45,7 @@ SECRET_KEY = 'django-insecure-=57vf463783^b_4h274&8mm(vq#4nu6p^u=jm3uh^tp%le2=j9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["13.112.86.78","127.0.0.1","api-flrming.dhoomaworksbench.site"]
+ALLOWED_HOSTS = ["13.112.86.78","127.0.0.1","api-flrming.dhoomaworksbench.site","api-fleming.dhoomaworksbench.site"]
 
 
 # Application definition
@@ -207,7 +207,18 @@ SITE_METAIMAGE = ""
 GOOGLE_ANALYTICS_KEY = ""
 
 
-CORS_ALLOWED_ORIGINS = ["https://api-flrming.dhoomaworksbench.site","http://127.0.0.1:8000"]
+CORS_ALLOWED_ORIGINS = ["https://api-flrming.dhoomaworksbench.site","http://127.0.0.1:8000","http://api-fleming.dhoomaworksbench.site"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+
+
+
+# AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400 # sec
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_NAME = 'DSESSIONID'
+# SESSION_COOKIE_SECURE = False

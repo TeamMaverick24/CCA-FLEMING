@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from dh_user.permissions import IsUserAddressOwner, IsUserProfileOwner
 
-from dh_user.mail import send_verify_email
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
@@ -43,12 +42,6 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAdminUser]
         elif self.action == 'update':
             permission_classes = [IsAdminOrIsSelf]
-        elif self.action == 'reset_password':
-            permission_classes = [IsAdminOrIsSelf]
-        elif self.action == 'send_verify_email':
-            permission_classes = [IsAdminOrIsSelf]
-        elif self.action == 'verify_email':
-            permission_classes = []
         else:
             permission_classes = []
         
@@ -62,12 +55,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 return UserLoginSerializer
             elif self.action == 'update':
                 return UpdateUserSerializer
-            elif self.action == 'reset_password':
-                return ResetPasswordSerializer
-            elif self.action == 'verify_email':
-                return None
-            elif self.action == 'send_verify_email':
-                return None
             else:
                 return UserSerializer
 
@@ -79,43 +66,24 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             student_obj = Student.objects.get(email=username)
             if student_obj and check_password(password,student_obj.password):
+                print(student_obj.__dict__)
                 refresh = RefreshToken.for_user(student_obj)
-                return Response({'refresh': str(refresh),'access': str(refresh.access_token),'status': True})
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'status': True,
+                    'name': student_obj.username,
+                    'contact_number': student_obj.contact_number,
+                    'is_staff': student_obj.is_staff,
+                })
+
         except:
+            # import traceback
+            # traceback.print_exc()
             return Response({'message':"Email address not found.",'status': False})
 
         return Response({'message':"Invalid credentials.",'status': False})
     
-    @action(methods=['post'], detail=True, url_path='reset-password')
-    def reset_password(self, request, *args, **kwargs):
-        password = request.data.pop('password')
-        user = self.get_object()
-        user.set_password(password)
-        user.save()
-        return Response({'status': True})
-
-    
-    @action(methods=['post'], detail=False, url_path='send-verify-email')
-    def send_verify_email(self, request):
-        user = request.user
-        user.email_code = BaseUserManager().make_random_password(length=50)
-        user.save()
-        link = settings.SERVER_HOST + '/api/user/' + f'{user.id}/verify-email/?email_code={user.email_code}'
-        send_verify_email(request.user, link)
-        return Response({'msg': f'Verification Email has been sent to {user.email}'})
-
-    
-    @action(methods=['get'], detail=True, url_path='verify-email')
-    def verify_email(self, request, pk):
-        user = self.get_object()
-        code = request.GET.get('email_code')
-        if (user.email_code != code):
-            return Response({'error': 'Invalid Verified Code'}, status=status.HTTP_400_BAD_REQUEST)
-        user.email_verified = True
-        user.email_code = None
-        user.save()
-        return HttpResponseRedirect(redirect_to=settings.WEB_HOST)
-
 
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True
