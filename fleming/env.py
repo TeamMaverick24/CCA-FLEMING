@@ -10,5 +10,5 @@ env = environ.Env(
 env.read_env(
     env.path(
         'FILE',
-        default=(environ.Path(__file__) - 3).path("env/.env")()
+        default=(environ.Path(__file__) - 2).path("flemingenv/.env")()
 )())

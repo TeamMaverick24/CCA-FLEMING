@@ -17,7 +17,7 @@ def get_timezones():
 
 def normalize_to_utc(time, timezone):
     """
-    Convert naive time into given timezone, then UTC
+    Convert naive time into given timezone, then EST
     """
     utct = pytz.timezone(u'EST')
     tzt = pytz.timezone(timezone)
