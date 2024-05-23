@@ -45,7 +45,7 @@ SECRET_KEY = 'django-insecure-=57vf463783^b_4h274&8mm(vq#4nu6p^u=jm3uh^tp%le2=j9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["13.112.86.78","127.0.0.1","api-flrming.dhoomaworksbench.site","api-fleming.dhoomaworksbench.site"]
+ALLOWED_HOSTS = ["13.112.86.78","127.0.0.1"]
 
 
 # Application definition
@@ -207,7 +207,7 @@ SITE_METAIMAGE = ""
 GOOGLE_ANALYTICS_KEY = ""
 
 
-CORS_ALLOWED_ORIGINS = ["https://api-flrming.dhoomaworksbench.site","http://127.0.0.1:8000","http://api-fleming.dhoomaworksbench.site"]
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8000"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
