@@ -84,7 +84,7 @@ AUTH_USER_MODEL = 'dh_user.Student'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates')],
+        'DIRS': [os.path.join(BASE_DIR,'templates'),os.path.join(PROJECT_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -109,7 +109,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -182,11 +181,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(os.path.dirname(BASE_DIR), 'static'),
 ]
-STATIC_ROOT = env.str("STATIC_ROOT",default=os.path.join(BASE_DIR, 'static'))
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 #Media File
 MEDIA_URL = '/media/'
-MEDIA_ROOT = env.str("MEDIA_DIR",default=os.path.join(os.path.dirname(BASE_DIR), 'media'))
+MEDIA_ROOT = os.path.join(os.path.dirname(PROJECT_DIR), 'media')
 MEDIAFILES_DIRS = (
     os.path.join(BASE_DIR, 'media'),
 )
@@ -216,7 +215,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 # AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_AGE = 86400 # sec
 SESSION_COOKIE_DOMAIN = None

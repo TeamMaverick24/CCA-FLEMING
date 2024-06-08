@@ -1,5 +1,8 @@
+from typing import Iterable
 from django.db import models
 from dh_user.models import Student
+from django.utils import timezone
+from django.conf import settings
 # Create your models here.
 
 
@@ -8,18 +11,60 @@ class GamesType(models.Model):
     description = models.TextField(default='')
     status = models.BooleanField(default=1)
 
+    def __str__(self):
+        return self.tittle
+
 class GamesOptions(models.Model):
     tittle = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(default='')
     status = models.BooleanField(default=1)
 
+GAME_MODE = (
+        ('options', 'Options'),
+        ('qr', 'QR Code'),
+        ('image', 'Image Upload'),
+    )
+
 class Games(models.Model):
     tittle = models.CharField(max_length=100, blank=True, null=True)
-    level = models.IntegerField(unique=True)
+    level = models.IntegerField(blank=True, null=True)
     description = models.TextField(default='')
     status = models.BooleanField(default=1)
     options = models.ManyToManyField(GamesOptions, blank=True)
     game_type = models.ForeignKey(GamesType, on_delete=models.CASCADE, blank=True, null=True)
+    qr_code = models.FileField(upload_to="qrcode", blank=True, null=True,default='')
+    qr_value = models.CharField(max_length=250, blank=True, null=True)
+    mode = models.CharField(max_length=50, default="qr",choices=GAME_MODE)
+
+    def qr_generator(self, *args, **kwargs):
+        try:
+            import string
+            import random
+            import qrcode
+            import os
+
+            img_dir = os.path.join(settings.MEDIA_ROOT, 'qrcode')
+            os.makedirs(img_dir, exist_ok=True) 
+            
+            unic_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
+            img = qrcode.make(unic_code)
+
+            img_name = f'{self.tittle}.png'
+            img_path = os.path.join(img_dir, img_name)
+            img.save(img_path)
+
+            self.qr_code = os.path.relpath(img_path, settings.MEDIA_ROOT)
+            self.qr_value = unic_code
+            self.save()
+
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+
+    
+    def __str__(self):
+        return self.tittle
 
 
 STATUS = (
@@ -34,3 +79,7 @@ class GameUser(models.Model):
     notes = models.TextField(default='')
     status = models.CharField(max_length=50, null=True,choices=STATUS)
 
+class UserUpload(models.Model):
+    profile = models.ForeignKey(GameUser, on_delete=models.CASCADE,null=False,blank=True)
+    picture = models.FileField(upload_to="user-uploads", null=False,default='')
+    created  = models.DateTimeField(default=timezone.now)

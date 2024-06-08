@@ -43,7 +43,18 @@ class GamesViewSet(viewsets.ModelViewSet):
     serializer_class = CreateGameSerializer
     http_method_names = ['get', 'post', 'put']
 
+    # def create(self, request, *args, **kwargs):
+    #     try:
+    #         post_data = request.post
+
+
+    #         return Response({'data': {}}, status=status.HTTP_200_OK)
+        
+    #     except:
+    #         return Response({'error': "No post found"}, status=status.HTTP_404_NOT_FOUND)
+
 class GetUserGameList(APIView):
+    serializer_class = GameSerializer
     """
         API endpoint that shows all games in 
 
@@ -81,6 +92,7 @@ class GetUserGameList(APIView):
 class GameLevelUpdate(APIView):
     # authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
+    serializer_class = GameSerializer
     def get(self, request, *args, **kwargs):
         try:
             game_id = request.GET.get('game_id')
