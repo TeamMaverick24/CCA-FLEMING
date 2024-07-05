@@ -359,11 +359,11 @@ class GameLevelUpdate(APIView):
             
             game_success = 0
             game_status = "F"
-            if game_obj.options != "image" and game_obj.answer_value == answer_value:
+            if game_obj.mode != "image" and game_obj.answer_value == answer_value:
                 game_status = "C"
                 game_success = 1
             
-            if game_obj.options == "image":
+            if game_obj.mode == "image":
                 game_status = "C"
                 game_success = 1
 
@@ -482,20 +482,24 @@ class GameUserViewSet(viewsets.ModelViewSet):
 
 from django.db.models import Count,Subquery
 
-class GamesScoreBoardView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = GamesScoreBoard.objects.all().order_by('-success_games')
-    serializer_class = GamesScoreBoardSerializer
+class GamesScoreBoardView(APIView):
+    permission_classes = [IsAdminUser]
     def get(self, request, *args, **kwargs):
         try:
-            game_type = request.GET.get('game_type', None)
-            if game_type:
-                self.queryset = self.queryset.filter(game_level__tittle=game_type)
+            user = request.user
+            campus_name = user.collage_name
 
-            result_data = super().get(self, request, *args, **kwargs)
-            game_data = result_data.data
+            total_mcq_questions = Games.objects.filter(collage_name=campus_name,mode="options").count()
+            total_qr_questions = Games.objects.filter(collage_name=campus_name,mode="qr").count()
+            total_image_questions = Games.objects.filter(collage_name=campus_name,mode="image").count()
 
-            return Response({'data': game_data}, status=status.HTTP_200_OK)
+            mcq_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 1",success_games=total_mcq_questions).values_list('student__id',flat=True))
+            qr_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 3",success_games=total_qr_questions,student__id__in=mcq_questions).values_list('student__id',flat=True))
+            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games=total_image_questions,student__id__in=qr_questions).values_list('student__id',flat=True))
+
+            student_obj = Student.objects.filter(id__in=image_questions).values('email','username','contact_number').all()
+
+            return Response({'data': student_obj}, status=status.HTTP_200_OK)
         except:
             import traceback; traceback.print_exc();
             return Response({'error': "No post found"}, status=status.HTTP_404_NOT_FOUND)
