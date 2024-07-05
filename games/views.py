@@ -359,7 +359,7 @@ class GameLevelUpdate(APIView):
             
             game_success = 0
             game_status = "F"
-            if game_obj.answer_value == answer_value:
+            if game_obj.options != "image" and game_obj.answer_value == answer_value:
                 game_status = "C"
                 game_success = 1
             
@@ -391,6 +391,7 @@ class GameLevelUpdate(APIView):
                     game=game_obj,
                     notes=game_notes,
                     status=game_status,
+                    answer_value = answer_value
                 )
 
             return Response({'message': "level updated."}, status=status.HTTP_200_OK)
