@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
-from .env import env
 from datetime import timedelta
 
 
@@ -20,21 +19,23 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = Path(__file__).resolve().parent
 
-SITE_HOST = env.str('SITE_HOST')
-SITE_URL_HTTP = 'http://{}'.format(SITE_HOST)
-SITE_URL_HTTPS = 'https://{}'.format(SITE_HOST)
+SITE_HOST = "https://api-flrming.dhoomaworksbench.site"
+# SITE_HOST = "http://127.0.0.1:8000"
 
-USE_SSL = env.bool('USE_SSL', default=False)
-if USE_SSL:
-    DEFAULT_SITE_URL = SITE_URL_HTTPS
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE=True
-    SECURE_HSTS_SECONDS = 31536000 #1 year, is common
-    SECURE_REDIRECT_EXEMPT = [r'^no-ssl/$']
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_SCHEME', 'https')
-else:
-   DEFAULT_SITE_URL = SITE_URL_HTTP
+# SITE_URL_HTTP = 'http://{}'.format(SITE_HOST)
+# SITE_URL_HTTPS = 'https://{}'.format(SITE_HOST)
+
+# USE_SSL = True
+# if USE_SSL:
+#     DEFAULT_SITE_URL = SITE_URL_HTTPS
+#     SECURE_SSL_REDIRECT = False
+#     SESSION_COOKIE_SECURE=True
+#     SECURE_HSTS_SECONDS = 31536000 #1 year, is common
+#     SECURE_REDIRECT_EXEMPT = [r'^no-ssl/$']
+#     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#     SECURE_PROXY_SSL_HEADER = ('HTTP_X_SCHEME', 'https')
+# else:
+#    DEFAULT_SITE_URL = SITE_URL_HTTP
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -45,7 +46,7 @@ SECRET_KEY = 'django-insecure-=57vf463783^b_4h274&8mm(vq#4nu6p^u=jm3uh^tp%le2=j9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["13.112.86.78","127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -156,7 +157,7 @@ REST_FRAMEWORK = {
 
 # JWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=15),
     'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
@@ -189,7 +190,7 @@ MEDIA_ROOT = os.path.join(os.path.dirname(PROJECT_DIR), 'media')
 MEDIAFILES_DIRS = (
     os.path.join(BASE_DIR, 'media'),
 )
-COMPRESS_ENABLED = True
+# COMPRESS_ENABLED = True
 
 
 # Default primary key field type
@@ -199,14 +200,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 SITE_NAME = "Fleming"
-SITE_DESCRIPTION = ""
-
-SITE_URL = ""
-SITE_METAIMAGE = ""
-GOOGLE_ANALYTICS_KEY = ""
 
 
-CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8000"]
+CORS_ALLOWED_ORIGINS = ["https://api-flrming.dhoomaworksbench.site","http://api-flrming.dhoomaworksbench.site","https://127.0.0.1"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -214,10 +210,11 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 
-# AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 86400 # sec
-SESSION_COOKIE_DOMAIN = None
-SESSION_COOKIE_NAME = 'DSESSIONID'
-# SESSION_COOKIE_SECURE = False
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+# EMAIL_USE_SSL = True
+EMAIL_HOST_USER ="teammavericks24@gmail.com"
+# EMAIL_HOST_PASSWORD ="#24TeamMavericks24#"
+EMAIL_HOST_PASSWORD ="gxazwxjifvhtblhj"

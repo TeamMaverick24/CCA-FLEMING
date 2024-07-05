@@ -4,5 +4,10 @@ from games.models import *
 
 admin.site.register(GamesType)
 admin.site.register(GamesOptions)
-admin.site.register(Games)
 admin.site.register(GameUser)
+
+
+class AdminGames(admin.ModelAdmin):
+    list_display = ['id','tittle' ,'level','mode','game_type']
+
+admin.site.register(Games,AdminGames)

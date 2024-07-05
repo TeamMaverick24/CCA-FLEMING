@@ -7,10 +7,17 @@ from rest_framework import viewsets, status
 from .models import *
 from django_countries.serializers import CountryFieldMixin
 
+
+class UserOtpSerializer(serializers.ModelSerializer):
+    mail_otp = serializers.IntegerField() 
+    class Meta:
+        model = Student
+        fields = ['mail_otp', 'email']
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        exclude = ['password', 'email_code','is_staff']
+        exclude = ['password', 'email_code','is_staff','groups','user_permissions']
 
 class UserLoginSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,7 +27,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        exclude = ['password','is_active', 'email_verified', 'email_code']
+        exclude = ['password','is_active', 'email_verified', 'email_code','groups','user_permissions']
     
     def to_representation(self, instance):
         return UserSerializer(instance=instance).data
@@ -28,9 +35,17 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        exclude = ['email_code']
+        exclude = ['email_code','groups','user_permissions']
         extra_kwargs = {'is_staff': {'read_only': True},'is_admin': {'read_only': True}, 'is_active': {'read_only': True}, 'last_login': {'read_only': True}, 'email_verified': {'read_only': True}, 'password': {'write_only': True},}
 
+    def validate(self, data):
+        email = data['email']
+        email_split = email.split("@")
+        # if email_split[1] != "flemingcollege.ca" :
+        #     raise serializers.ValidationError("Please enter a registered Fleming email")
+            
+        return super().validate(data)
+    
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Student(**validated_data)
@@ -46,3 +61,8 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['password']
 
+
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['email']

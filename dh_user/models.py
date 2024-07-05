@@ -70,11 +70,14 @@ class Student(AbstractBaseUser,PermissionsMixin):
     
     date_joined = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False) # Super Admin User
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     email_verified = models.BooleanField(default=False)
+    email_otp = models.CharField(max_length=100,null=True)
     contact_number = models.CharField(max_length=100, null=True)
     email_code = models.CharField(max_length=100, null=True)
+    collage_name = models.CharField(max_length=100, null=True)
     username = models.CharField(max_length=100, null=True)
     
     REQUIRED_FIELDS = ['username','contact_number']
