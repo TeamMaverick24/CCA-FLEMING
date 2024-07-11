@@ -378,7 +378,7 @@ class GameLevelUpdate(APIView):
                     GamesScoreBoard.objects.create(
                         student=user_game.user,
                         game_level=user_game.game.game_type,
-                        total_games=Games.objects.filter(game_type=game_obj.game_type).count(),
+                        total_games=Games.objects.filter(game_type=game_obj.game_type,collage_name=game_obj.collage_name).count(),
                         success_games=game_success
                     )
                 else:
@@ -395,8 +395,8 @@ class GameLevelUpdate(APIView):
                 )
 
             return Response({'message': "level updated."}, status=status.HTTP_200_OK)
-        except:
-            return Response({'error': "No post found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_404_NOT_FOUND)
 
 class GameImageStatusUpdate(APIView):
     permission_classes = [IsActiveStudent]
@@ -493,9 +493,10 @@ class GamesScoreBoardView(APIView):
             total_qr_questions = Games.objects.filter(collage_name=campus_name,mode="qr").count()
             total_image_questions = Games.objects.filter(collage_name=campus_name,mode="image").count()
 
-            mcq_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 1",success_games=total_mcq_questions).values_list('student__id',flat=True))
-            qr_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 3",success_games=total_qr_questions,student__id__in=mcq_questions).values_list('student__id',flat=True))
-            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games=total_image_questions,student__id__in=qr_questions).values_list('student__id',flat=True))
+            mcq_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 1",success_games__gte=total_mcq_questions).values_list('student__id',flat=True))
+            qr_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 3",success_games__gte=total_qr_questions,student__id__in=mcq_questions).values_list('student__id',flat=True))
+            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games__gte=total_image_questions,student__id__in=qr_questions).values_list('student__id',flat=True))
+            print(mcq_questions)
 
             student_obj = Student.objects.filter(id__in=image_questions).values('email','username','contact_number').all()
 
@@ -521,3 +522,21 @@ class GamesScoreBoardClean(APIView):
             import traceback
             traceback.print_exc()
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class GamesScoreBoardList(generics.ListAPIView):
+    queryset = GamesScoreBoard.objects.all()
+    serializer_class = GamesScoreBoardSerializer
+    permission_classes = [IsAuthenticated]
+    def get(self, request, *args, **kwargs):
+        
+        student = request.GET.get('student', None)
+        if student:
+            self.queryset = self.queryset.filter(student__id=student)
+
+        game_level = request.GET.get('game_level', None)
+        if game_level:
+            self.queryset = self.queryset.filter(game_level__id=game_level)
+
+        response_data = super().get(self, request, *args, **kwargs)
+        return Response({'message':"Student List.",'status': True,"data":response_data.data})

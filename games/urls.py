@@ -25,5 +25,7 @@ urlpatterns = [
 
     path('game-reset', GamesScoreBoardClean.as_view()),    
     path('current-level', GameCurrentLevel.as_view()),   
+
+    path('game-scorebord-list', GamesScoreBoardList.as_view()),   
      
 ]

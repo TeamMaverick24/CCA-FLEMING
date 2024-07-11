@@ -5,6 +5,7 @@ from games.models import *
 admin.site.register(GamesType)
 admin.site.register(GamesOptions)
 admin.site.register(GameUser)
+admin.site.register(GamesScoreBoard)
 
 
 class AdminGames(admin.ModelAdmin):
