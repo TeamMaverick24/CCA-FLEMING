@@ -49,6 +49,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Student(**validated_data)
+        import base64
+        decoded_bytes = base64.b64decode(password)
+        password = decoded_bytes.decode('utf-8')
         user.set_password(password)
         user.save()
         return user

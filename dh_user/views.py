@@ -6,8 +6,6 @@ from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from dh_user.permissions import IsUserAddressOwner, IsUserProfileOwner
-
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
@@ -108,6 +106,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
             student_obj = Student.objects.filter(email=email,is_active=False).first()
             if not student_obj:
+                import base64
+                decoded_bytes = base64.b64decode(request_data['password'])
+                request_data['password'] = decoded_bytes.decode('utf-8')
+
                 serializer = self.get_serializer(data=request_data)
                 serializer.is_valid(raise_exception=True)
                 self.perform_create(serializer)
@@ -148,7 +150,10 @@ class UserViewSet(viewsets.ModelViewSet):
                 student_obj.contact_number = request_data['contact_number'] if 'contact_number' in request_data else ""
                 student_obj.collage_name = request_data['collage_name']
                 student_obj.username = request_data['username']
-                student_obj.set_password(request_data['password'])
+                import base64
+                decoded_bytes = base64.b64decode(request_data['password'])
+                password = decoded_bytes.decode('utf-8')
+                student_obj.set_password(password)
                 student_obj.save()
                 res = {
                     "message": "Admin User Created Successfully",
@@ -191,6 +196,9 @@ class UserViewSet(viewsets.ModelViewSet):
     def reset_password(self, request, *args, **kwargs):
         password = request.data.pop('password')
         user = self.get_object()
+        import base64
+        decoded_bytes = base64.b64decode(password)
+        password = decoded_bytes.decode('utf-8')
         user.set_password(password)
         user.save()
         return Response({'status': True})
@@ -234,6 +242,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False, url_path='otp-reset-password')
     def otp_reset_password(self, request, *args, **kwargs):
         password = request.data.pop('password')
+        import base64
+        decoded_bytes = base64.b64decode(password)
+        password = decoded_bytes.decode('utf-8')
         email = request.data.pop('email')
         otp = request.data.pop('otp')
         student_obj = Student.objects.filter(email=email).first()
@@ -247,9 +258,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(methods=['post'], detail=False, url_path='user-login')
     def user_login(self, request, *args, **kwargs):
-        username = request.data.get("email")
-        password = request.data.get("password")
+        username = str(request.data.get("email"))
+        password = str(request.data.get("password"))
         try:
+            import base64
+            decoded_bytes = base64.b64decode(password)
+            password = decoded_bytes.decode('utf-8')
+
             student_obj = Student.objects.get(email=username)
             if student_obj and check_password(password,student_obj.password):
                 game_data = {}
@@ -293,8 +308,8 @@ class UserList(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request, *args, **kwargs):
-        
 
+        self.queryset = self.queryset.filter(is_admin=False)
 
         response_data = super().get(self, request, *args, **kwargs)
         return Response({'message':"Student List.",'status': True,"data":response_data.data})

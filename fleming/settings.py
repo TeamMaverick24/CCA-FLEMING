@@ -19,7 +19,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = Path(__file__).resolve().parent
 
-SITE_HOST = "https://api-flrming.dhoomaworksbench.site"
+SITE_HOST = "http://127.0.0.1:8000"
 # SITE_HOST = "http://127.0.0.1:8000"
 
 # SITE_URL_HTTP = 'http://{}'.format(SITE_HOST)
@@ -202,7 +202,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SITE_NAME = "Fleming"
 
 
-CORS_ALLOWED_ORIGINS = ["https://api-flrming.dhoomaworksbench.site","http://api-flrming.dhoomaworksbench.site","https://127.0.0.1"]
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8000","http://127.0.0.1:8000","https://127.0.0.1"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True

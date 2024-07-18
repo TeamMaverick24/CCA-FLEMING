@@ -493,10 +493,9 @@ class GamesScoreBoardView(APIView):
             total_qr_questions = Games.objects.filter(collage_name=campus_name,mode="qr").count()
             total_image_questions = Games.objects.filter(collage_name=campus_name,mode="image").count()
 
-            mcq_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 1",success_games__gte=total_mcq_questions).values_list('student__id',flat=True))
-            qr_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 3",success_games__gte=total_qr_questions,student__id__in=mcq_questions).values_list('student__id',flat=True))
-            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games__gte=total_image_questions,student__id__in=qr_questions).values_list('student__id',flat=True))
-            print(mcq_questions)
+            mcq_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 1",success_games__gte=total_mcq_questions,student__collage_name=campus_name).values_list('student__id',flat=True))
+            qr_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 3",success_games__gte=total_qr_questions,student__id__in=mcq_questions,student__collage_name=campus_name).values_list('student__id',flat=True))
+            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games__gte=total_image_questions,student__id__in=qr_questions,student__collage_name=campus_name).values_list('student__id',flat=True))
 
             student_obj = Student.objects.filter(id__in=image_questions).values('email','username','contact_number').all()
 
