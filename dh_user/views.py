@@ -6,6 +6,8 @@ from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from dh_user.permissions import IsUserAddressOwner, IsUserProfileOwner
+
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
@@ -279,6 +281,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                     'status': True,
+                    'student_id': student_obj.pk,
                     'name': student_obj.username,
                     'contact_number': student_obj.contact_number,
                     'is_staff': student_obj.is_staff,

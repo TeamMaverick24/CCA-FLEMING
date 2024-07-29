@@ -106,3 +106,4 @@ class GamesScoreBoard(models.Model):
     game_level = models.ForeignKey(GamesType, on_delete=models.CASCADE, blank=True, null=True)
     total_games = models.CharField(max_length=250, blank=True, null=True)
     success_games = models.CharField(max_length=250, blank=True, null=True)
+    played_games = models.CharField(max_length=250, blank=True, null=True)

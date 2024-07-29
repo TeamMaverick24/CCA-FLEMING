@@ -79,14 +79,18 @@ class GamesViewSet(APIView):
         try:
             post_data = request.data
 
-            # if Games.objects.filter(tittle=post_data["tittle"],collage_name=post_data["collage_name"],game_type__id=post_data["game_type"]).exists():
-            #     return Response({'message': "Game tittle already exist."}, status=status.HTTP_400_BAD_REQUEST)
+            if Games.objects.filter(tittle=post_data["tittle"],collage_name=post_data["collage_name"],mode = post_data["mode"]).exists():
+                return Response({'message': "Game tittle already exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if Games.objects.filter(tittle=post_data["description"],collage_name=post_data["collage_name"],mode = post_data["mode"]).exists():
+                return Response({'message': "Game tittle already exist."}, status=status.HTTP_400_BAD_REQUEST)
 
             game_type = GamesType.objects.filter(id=post_data["game_type"]).first()
             options = post_data['options']
+            game_code = Games.objects.filter(level=post_data["level"]).count()
             gm = Games()
             gm.tittle = post_data["tittle"]
-            gm.level = post_data["level"]
+            gm.level = game_code + 1
             gm.description = post_data["description"]
             gm.mode = post_data["mode"]
             gm.collage_name = post_data["collage_name"]
@@ -301,10 +305,11 @@ class GameCurrentLevel(APIView):
             user = request.user
             game_data = {}
             game_obj = GameUser.objects.filter(user=user).select_related('game').last()
+            level_count = Games.objects.filter(mode=game_obj.game.mode,collage_name=game_obj.game.collage_name,id__lte=game_obj.game.pk).count()
             if game_obj:
                 game_data = {
                     "game_tittle":game_obj.game.tittle,
-                    "game_level":game_obj.game.level,
+                    "game_level":level_count,
                     "game_description":game_obj.game.description,
                     "game_type":game_obj.game.game_type.tittle,
                     "game_answer_value":game_obj.game.answer_value,
@@ -354,8 +359,8 @@ class GameLevelUpdate(APIView):
             if game_obj.mode == "qr" and game_obj.answer_value != answer_value:
                 return Response({'message': "Please submit valid QR."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # if game_obj.mode == "options" and game_obj.answer_value != answer_value:
-            #     return Response({'message': "Your response is incorrect."}, status=status.HTTP_400_BAD_REQUEST)
+            if user_game:
+                return Response({'message': "This game is already completed."}, status=status.HTTP_400_BAD_REQUEST)
             
             game_success = 0
             game_status = "F"
@@ -367,32 +372,35 @@ class GameLevelUpdate(APIView):
                 game_status = "C"
                 game_success = 1
 
-            if user_game:
-                user_game.notes = game_notes
-                user_game.answer_value = answer_value
-                user_game.status = game_status
-                user_game.save()
-
-                user_score = GamesScoreBoard.objects.filter(student=user,game_level=game_obj.game_type).first()
-                if not user_score:
-                    GamesScoreBoard.objects.create(
-                        student=user_game.user,
-                        game_level=user_game.game.game_type,
-                        total_games=Games.objects.filter(game_type=game_obj.game_type,collage_name=game_obj.collage_name).count(),
-                        success_games=game_success
-                    )
-                else:
-                    user_score.success_games = int(user_score.success_games) + game_success
-                    user_score.save()
-
-            else:
-                GameUser.objects.create(
+            if not user_game:
+                user_game = GameUser.objects.create(
                     user=user,
                     game=game_obj,
                     notes=game_notes,
                     status=game_status,
                     answer_value = answer_value
                 )
+
+            # else:
+            #     user_game.notes = game_notes
+            #     user_game.answer_value = answer_value
+            #     user_game.status = game_status
+            #     user_game.save()
+            
+            if user_game:
+                user_score = GamesScoreBoard.objects.filter(student=user,game_level=game_obj.game_type).first()
+                if not user_score:
+                    GamesScoreBoard.objects.create(
+                        student=user_game.user,
+                        game_level=user_game.game.game_type,
+                        total_games=Games.objects.filter(game_type=game_obj.game_type,collage_name=game_obj.collage_name).count(),
+                        success_games=game_success,
+                        played_games=1
+                    )
+                else:
+                    user_score.success_games = int(user_score.success_games) + game_success
+                    user_score.played_games = int(user_score.played_games) + 1
+                    user_score.save()
 
             return Response({'message': "level updated."}, status=status.HTTP_200_OK)
         except Exception as err:

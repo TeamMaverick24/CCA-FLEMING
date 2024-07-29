@@ -41,17 +41,14 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         email = data['email']
         email_split = email.split("@")
-        # if email_split[1] != "flemingcollege.ca" :
-        #     raise serializers.ValidationError("Please enter a registered Fleming email")
+        if email_split[1] != "flemingcollege.ca" :
+            raise serializers.ValidationError("Please enter a registered Fleming email")
             
         return super().validate(data)
     
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Student(**validated_data)
-        import base64
-        decoded_bytes = base64.b64decode(password)
-        password = decoded_bytes.decode('utf-8')
         user.set_password(password)
         user.save()
         return user
