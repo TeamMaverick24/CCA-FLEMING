@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from dh_user.permissions import IsActiveStudent
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
-
+from django.db.models import Q
 
 from games.models import *
 from .serializer import *
@@ -59,8 +59,34 @@ class GamesViewSetModel(viewsets.ModelViewSet):
         if collage_name:
             self.queryset = self.queryset.filter(collage_name=collage_name)
 
-
         return self.queryset
+
+    def create(self, request):
+        post_data = request.data
+        game_tittle = str(post_data["tittle"])
+        game_tittle = game_tittle.title()
+
+        if Games.objects.filter(tittle=game_tittle,collage_name=post_data["collage_name"],mode = post_data["mode"]).exists():
+            return Response({'message': "Game tittle already exist."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        #Set your serializer
+        game_type_str = "Level " + str(post_data["game_type"])
+
+        game_type = GamesType.objects.filter(Q(tittle=post_data["game_type"]) | Q(tittle=game_type_str)).first()
+        if not game_type:
+            return Response({'message': "Game type not configured properly."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        request.data["tittle"] = game_tittle
+        request.data["tittle"] = game_type.pk
+        serializer = CreateGameSerializer(data=request.data)
+        if serializer.is_valid(): #MAGIC HAPPENS HERE
+            #... Here you do the routine you do when the data is valid
+            #You can use the serializer as an object of you Assets Model
+            #Save it
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GamesViewSet(APIView):
@@ -79,17 +105,22 @@ class GamesViewSet(APIView):
         try:
             post_data = request.data
 
-            if Games.objects.filter(tittle=post_data["tittle"],collage_name=post_data["collage_name"],mode = post_data["mode"]).exists():
+            game_tittle = str(post_data["tittle"])
+            game_tittle = game_tittle.title()
+
+            if Games.objects.filter(tittle=game_tittle,collage_name=post_data["collage_name"],mode = post_data["mode"]).exists():
                 return Response({'message': "Game tittle already exist."}, status=status.HTTP_400_BAD_REQUEST)
 
             if Games.objects.filter(tittle=post_data["description"],collage_name=post_data["collage_name"],mode = post_data["mode"]).exists():
                 return Response({'message': "Game tittle already exist."}, status=status.HTTP_400_BAD_REQUEST)
 
-            game_type = GamesType.objects.filter(id=post_data["game_type"]).first()
+            #Set your serializer
+            game_type_str = "Level " + str(post_data["game_type"])
+            game_type = GamesType.objects.filter(Q(tittle=post_data["game_type"]) | Q(tittle=game_type_str)).first()
             options = post_data['options']
             game_code = Games.objects.filter(level=post_data["level"]).count()
             gm = Games()
-            gm.tittle = post_data["tittle"]
+            gm.tittle = game_tittle
             gm.level = game_code + 1
             gm.description = post_data["description"]
             gm.mode = post_data["mode"]
@@ -97,7 +128,8 @@ class GamesViewSet(APIView):
             gm.game_type = game_type
 
             if "answer_value" in post_data and post_data["answer_value"]:
-                gm.answer_value = post_data["answer_value"]
+                answer_value = str(post_data["answer_value"])
+                gm.answer_value = answer_value.lower()
             
             gm.save()
             
@@ -352,19 +384,24 @@ class GameLevelUpdate(APIView):
             game_id = request.data['game_id']
             # game_status = request.data['status']
             game_notes = request.data['notes']
-            answer_value = request.data['answer_value']
+            answer_value = str(request.data['answer_value'])
             user = request.user
             game_obj = Games.objects.filter(id=game_id).first()
             user_game = GameUser.objects.filter(user=user,game=game_obj).first()
             if game_obj.mode == "qr" and game_obj.answer_value != answer_value:
                 return Response({'message': "Please submit valid QR."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if user_game:
+            if game_obj.mode != "qr" and user_game:
+                return Response({'message': "This game is already completed."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if user_game and user_game.answer_value == game_obj.answer_value:
                 return Response({'message': "This game is already completed."}, status=status.HTTP_400_BAD_REQUEST)
             
             game_success = 0
             game_status = "F"
-            if game_obj.mode != "image" and game_obj.answer_value == answer_value:
+            answer_value_qr = answer_value
+            answer_value = answer_value.lower()
+            if game_obj.mode != "image" and (game_obj.answer_value == answer_value or game_obj.answer_value == answer_value_qr) :
                 game_status = "C"
                 game_success = 1
             
@@ -380,12 +417,11 @@ class GameLevelUpdate(APIView):
                     status=game_status,
                     answer_value = answer_value
                 )
+            else:
+                if game_obj.mode == "qr":
+                    user_game.answer_value = answer_value
+                    user_game.save()
 
-            # else:
-            #     user_game.notes = game_notes
-            #     user_game.answer_value = answer_value
-            #     user_game.status = game_status
-            #     user_game.save()
             
             if user_game:
                 user_score = GamesScoreBoard.objects.filter(student=user,game_level=game_obj.game_type).first()
@@ -394,12 +430,13 @@ class GameLevelUpdate(APIView):
                         student=user_game.user,
                         game_level=user_game.game.game_type,
                         total_games=Games.objects.filter(game_type=game_obj.game_type,collage_name=game_obj.collage_name).count(),
-                        success_games=game_success,
-                        played_games=1
+                        success_games=1,
+                        played_games=game_success
                     )
                 else:
-                    user_score.success_games = int(user_score.success_games) + game_success
-                    user_score.played_games = int(user_score.played_games) + 1
+
+                    user_score.success_games = int(user_score.success_games) + 1
+                    user_score.played_games = int(user_score.played_games) + game_success
                     user_score.save()
 
             return Response({'message': "level updated."}, status=status.HTTP_200_OK)
@@ -503,7 +540,7 @@ class GamesScoreBoardView(APIView):
 
             mcq_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 1",success_games__gte=total_mcq_questions,student__collage_name=campus_name).values_list('student__id',flat=True))
             qr_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 3",success_games__gte=total_qr_questions,student__id__in=mcq_questions,student__collage_name=campus_name).values_list('student__id',flat=True))
-            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games__gte=total_image_questions,student__id__in=qr_questions,student__collage_name=campus_name).values_list('student__id',flat=True))
+            image_questions = list(GamesScoreBoard.objects.filter(game_level__tittle="Level 2",success_games__gte=total_image_questions,student__id__in=qr_questions,student__collage_name=campus_name).values_list('student__id',flat=True).order_by('update'))
 
             student_obj = Student.objects.filter(id__in=image_questions).values('email','username','contact_number').all()
 

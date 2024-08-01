@@ -40,6 +40,25 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         email = data['email']
+        password = data['password']
+        SpecialSym = ['$','@','#','%']
+
+
+        if len(password) < 6 :
+            raise serializers.ValidationError("Password length should be at least 6")
+        
+        if not any(char.isdigit() for char in password):
+            raise serializers.ValidationError('Password should have at least one numeral')
+            
+        if not any(char.isupper() for char in password):
+            raise serializers.ValidationError('Password should have at least one uppercase letter')
+            
+        if not any(char.islower() for char in password):
+            raise serializers.ValidationError('Password should have at least one lowercase letter')
+
+        if not any(char in SpecialSym for char in password):
+            raise serializers.ValidationError('Password should have at least one lowercase letter')
+        
         email_split = email.split("@")
         if email_split[1] != "flemingcollege.ca" :
             raise serializers.ValidationError("Please enter a registered Fleming email")

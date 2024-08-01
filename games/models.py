@@ -107,3 +107,6 @@ class GamesScoreBoard(models.Model):
     total_games = models.CharField(max_length=250, blank=True, null=True)
     success_games = models.CharField(max_length=250, blank=True, null=True)
     played_games = models.CharField(max_length=250, blank=True, null=True)
+    update = models.DateTimeField(auto_now=True)
+    # played_ids = JSONField(default=list)
+
